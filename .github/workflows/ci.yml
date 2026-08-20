@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Pinned to the exact pnpm the package declares in `packageManager`, rather than latest.
       # A package manager that resolves differently from the one the lockfile was written by can
@@ -27,7 +27,7 @@ jobs:
         with:
           version: 10.34.5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
