@@ -1,0 +1,68 @@
+# WHY THIS WORKFLOW IS THE ONLY CHECK THAT PROVES ANYTHING.
+#
+# Every other verification in this repository runs on a machine that already has the author's
+# node_modules, the author's pnpm store and the author's Node. None of that tells anybody whether a
+# stranger who clones this can build it, which for a package whose entire purpose is to be adopted
+# by somebody else's tool is the only question that matters.
+#
+# So this starts from nothing: a clean checkout, a frozen lockfile, and the four commands the README
+# tells a contributor to run. If the README is wrong, this goes red.
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to the exact pnpm the package declares in `packageManager`, rather than latest.
+      # A package manager that resolves differently from the one the lockfile was written by can
+      # produce a passing build for a tree nobody has.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # FROZEN, so that a lockfile which has drifted from package.json fails here rather than being
+      # silently updated into a state no committed file describes.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+      # The build emits the files `exports` in package.json points at. A package that type-checks,
+      # tests green and then publishes a broken export map is a real and common outcome, because
+      # nothing above this line reads that map. This does.
+      - name: every export map entry points at a file that exists
+        run: |
+          node --input-type=module -e '
+            import { readFileSync, existsSync } from "node:fs"
+            const pkg = JSON.parse(readFileSync("package.json", "utf8"))
+            const missing = []
+            const walk = (entry) => {
+              if (typeof entry === "string") {
+                if (!existsSync(entry.replace(/^\.\//, ""))) missing.push(entry)
+                return
+              }
+              for (const value of Object.values(entry)) walk(value)
+            }
+            walk(pkg.exports)
+            for (const file of pkg.files) {
+              if (!existsSync(file)) missing.push(file + " (from files)")
+            }
+            if (missing.length > 0) {
+              console.error("these are declared but were not produced:\n  " + missing.join("\n  "))
+              process.exit(1)
+            }
+            console.log("every declared export and file is present")
+          '

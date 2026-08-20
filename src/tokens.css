@@ -1,0 +1,158 @@
+/**
+ * THE TOKEN CONTRACT. THE NAMES ARE THE PRODUCT; THE VALUES ARE PLACEHOLDERS.
+ *
+ * This file exists so that a component in this package can write `var(--bg-panel)` and a consumer
+ * can know, without reading the component, exactly which custom properties it is expected to
+ * define. That list is the contract. It is twenty-three names, and it is the entire point of the
+ * file.
+ *
+ * THE VALUES BELOW ARE NOT A PALETTE AND MUST NEVER BECOME ONE.
+ *
+ * They are a deliberately drab achromatic ramp, chosen here, belonging to nobody. They exist so
+ * that a consumer who has not yet themed anything sees something legible rather than unstyled black
+ * on white, and so that a component's own tests have values to compute against. They are chosen to
+ * look UNFINISHED on purpose: grey, low-contrast accents, nothing anyone would ship. A default that
+ * looked good would get shipped by somebody in a hurry, and this package would have quietly made a
+ * design decision for a product it knows nothing about.
+ *
+ * This matters beyond taste. A shared UI package is exactly the wrong place to keep a palette,
+ * because a palette usually belongs to somebody: a design system, an employer, a product with a
+ * brand. Copying one into a library is how a colour with an owner ends up in a dozen repositories
+ * that have no right to it and no record of where it came from. So the rule for this file is
+ * simple, and it is a rule rather than a preference:
+ *
+ *   NO PRODUCT'S PALETTE IS EVER ADDED HERE. Not as a default, not as a theme, not as an example,
+ *   not "temporarily". A consumer supplies its own values, in its own repository, under its own
+ *   licence. If a component here needs a colour it does not have, the answer is a new NAME in this
+ *   file, never somebody's value.
+ *
+ * HOW A CONSUMER OVERRIDES THESE. Import this file first, then define the same names afterwards on
+ * a selector of equal or greater specificity. Later wins at equal specificity, so a plain `:root`
+ * block in the consumer's own stylesheet replaces any of these:
+ *
+ *   @import 'ratchet-ui/tokens.css';
+ *
+ *   :root {
+ *     --bg-canvas: <the consumer's own value>;
+ *   }
+ *
+ * A consumer overriding every name is the expected case, not an unusual one, and a consumer whose
+ * own tokens are declared under a licence that does not permit redistribution should keep them
+ * exactly where they are. That is the arrangement this file is designed to support.
+ *
+ * DARK THEME BY CLASS, not by `prefers-color-scheme`. A dashboard mounted inside a shell has to
+ * follow the shell's choice rather than the operating system's, so the switch has to be something
+ * the shell can set. `.dark` on the root element is that. A consumer that wants to follow the
+ * system as well can say so itself in one media query; a package that decided for everybody could
+ * not be talked out of it.
+ */
+
+:root {
+  /*
+   * SURFACES, from the ground up. Canvas is the page itself, panel is a region laid on it, card is
+   * a thing within a region, subtle is a recessed strip such as a table header, and elevated is the
+   * one that floats above everything else.
+   *
+   * Five, and the count is deliberate. Every extra surface is a decision a component author has to
+   * make correctly and a reader has to be able to see the point of; three surfaces that differ by
+   * two percent lightness read as one surface with a rendering bug.
+   */
+  --bg-canvas: #f4f4f5;
+  --bg-panel: #fbfbfc;
+  --bg-card: #fdfdfd;
+  --bg-subtle: #ececee;
+  --bg-elevated: #fdfdfd;
+
+  /*
+   * TEXT, in three weights of importance rather than three colours. Primary is the content,
+   * secondary is content a reader can skip, tertiary is the labelling that explains the content and
+   * should never compete with it.
+   */
+  --text-primary: #1a1a1c;
+  --text-secondary: #4a4a4e;
+  --text-tertiary: #78787e;
+
+  /*
+   * BORDERS. Soft separates things that belong together, strong separates things that do not.
+   * A single border token forces every rule to be the same rule, and then the outline of a card and
+   * the line between two table rows carry the same weight, which tells a reader nothing.
+   */
+  --border-soft: #e2e2e5;
+  --border-strong: #c9c9ce;
+
+  /*
+   * INTERACTION. Hover is the pointer passing over, active is the press, selected is the state that
+   * persists after the press. Selected needs its own text colour because a selected row may invert.
+   * The focus ring is separate from all of them: it is for the keyboard, and it must stay visible
+   * on every surface above, which is why it is near-black rather than a tint of the accent.
+   */
+  --state-hover-bg: #efeff1;
+  --state-active-bg: #e2e2e5;
+  --state-selected-bg: #ececee;
+  --state-selected-text: #1a1a1c;
+  --focus-ring: #1a1a1c;
+
+  /*
+   * ACCENT, split into what is EMPHASISED and what is ACTIONABLE, which are not the same claim.
+   * Primary tints a heading or an active tab; action fills a button that will do something when
+   * pressed. Products that use one token for both end up with decorative elements that look
+   * clickable, and the complaint that follows is never phrased as a token problem.
+   *
+   * `on-action` is the text that sits on top of a filled action and is the one token here that
+   * cannot be chosen independently of another: it has to contrast with `--accent-action`, so a
+   * consumer overriding one must look at the other.
+   */
+  --accent-primary: #4a5568;
+  --accent-hover: #3a4453;
+  --accent-action: #4a5568;
+  --accent-action-hover: #3a4453;
+  --accent-on-action: #fbfbfc;
+  --accent-soft: #e6e8ec;
+
+  /*
+   * DANGER, for destructive actions and for failure. Not "red": a consumer whose product signals
+   * failure some other way overrides this to whatever it uses, and every component that draws a
+   * failure follows without knowing.
+   */
+  --danger: #8c2f2f;
+  --danger-hover: #742626;
+}
+
+/*
+ * THE DARK RAMP IS NOT THE LIGHT ONE INVERTED, and this is the usual mistake.
+ *
+ * Inverting produces pure-white text on pure-black panels, which glares, and it flips the surface
+ * order so that the elevated surface becomes the darkest thing on the page when raised surfaces
+ * should catch more light rather than less. So dark surfaces climb from canvas upward, same as
+ * light, and the text stops short of white.
+ */
+.dark {
+  --bg-canvas: #161618;
+  --bg-panel: #1c1c1f;
+  --bg-card: #212125;
+  --bg-subtle: #26262a;
+  --bg-elevated: #2b2b30;
+
+  --text-primary: #ededef;
+  --text-secondary: #b4b4ba;
+  --text-tertiary: #85858c;
+
+  --border-soft: #303036;
+  --border-strong: #43434a;
+
+  --state-hover-bg: #26262a;
+  --state-active-bg: #303036;
+  --state-selected-bg: #2b2b30;
+  --state-selected-text: #ededef;
+  --focus-ring: #ededef;
+
+  --accent-primary: #8a94a6;
+  --accent-hover: #9ca6b8;
+  --accent-action: #5a657a;
+  --accent-action-hover: #6b7689;
+  --accent-on-action: #ededef;
+  --accent-soft: #2a2e36;
+
+  --danger: #c97a7a;
+  --danger-hover: #d89090;
+}
