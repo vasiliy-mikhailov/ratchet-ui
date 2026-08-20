@@ -20,12 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Pinned to the exact pnpm the package declares in `packageManager`, rather than latest.
-      # A package manager that resolves differently from the one the lockfile was written by can
-      # produce a passing build for a tree nobody has.
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.34.5
+      # NO VERSION INPUT HERE ON PURPOSE. This action reads `packageManager` out of package.json,
+      # which is where the pnpm version is already pinned, so naming it again in this file would be
+      # a second copy free to drift from the first. A package manager that resolves differently
+      # from the one the lockfile was written by produces a passing build for a tree nobody has.
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v5
         with:
