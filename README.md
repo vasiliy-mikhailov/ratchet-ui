@@ -4,11 +4,11 @@ The parts of an agent-pipeline dashboard that do not move at UI speed: the shape
 the runtime checks that say whether it really served them, and a token contract that names what a
 component needs without deciding what colour it is.
 
-Apache 2.0. No dependencies. No React.
+Apache 2.0. No dependencies. React is a peer, and only the `./components` entry needs it.
 
 ```sh
 # not on npm yet; depend on a release tag
-pnpm add github:vasiliy-mikhailov/ratchet-ui#v0.1.0
+pnpm add github:vasiliy-mikhailov/ratchet-ui#v0.2.0
 ```
 
 ## Why this exists
@@ -31,6 +31,7 @@ speaks it. That is what is in here, and nothing else is.
 | `src/check.ts` | Hand-written validators returning a list of problems, never throwing. |
 | `src/tokens.css` | The custom-property names a component may reference, with placeholder values. |
 | `src/style.ts` | Adding CSS custom properties to a style object without depending on React. |
+| `src/components/` | Five React components whose two versions differed by palette, not behaviour. |
 | `tsconfig.base.json` | The compiler settings both consuming repositories already had, byte for byte. |
 
 ## The types are only half of a contract
@@ -89,7 +90,7 @@ Each project gets the exhaustive union it can switch over. The shared type stays
 
 ## The token contract carries no palette
 
-`src/tokens.css` is a list of twenty-three custom-property **names**. The values in it are a
+`src/tokens.css` is a list of thirty-three custom-property **names**. The values in it are a
 deliberately drab grey ramp, chosen for this file, belonging to nobody. They are there so an
 unthemed consumer sees something legible and a component's tests have something to compute against,
 and they are chosen to look unfinished on purpose. A default that looked good would get shipped by
@@ -124,21 +125,75 @@ this arrangement is for.
 Dark theme switches on `.dark` at the root rather than `prefers-color-scheme`, because a dashboard
 mounted inside a shell has to follow the shell's choice and the shell needs something it can set.
 
+## The components
+
+`ratchet-ui/components` ships five: `EmptyNote`, `PageHeader`, `Pill`, `ProgressBar` and `Tally`,
+plus the `STRIP` and `CORNER` style objects they sit in and the `Style` type they are written
+against. React is a peer at `>=19`, declared for this entry alone. Nothing under `.`, `./wire`,
+`./check` or `./style` imports React, so a consumer that only wants the contract still pays nothing.
+
+They are here because both dashboards had written all five and, with comments stripped, the two
+versions differed by the palette rather than by the behaviour. That is the whole admission rule, and
+it is checked rather than asserted: `tokens.test.ts` fails the build on a component that reaches for
+a custom property the contract does not list, which is exactly what happened the first time a pill
+arrived carrying `var(--state-pass)`.
+
+So a tone is a name, and a colour is the consumer's:
+
+```css
+/* your own stylesheet, your own values, your own repository */
+:root {
+  --state-good: /* what "this worked" looks like in your product */;
+  --state-warn: /* … */;
+  --state-quiet: /* … */;
+  --state-alarm: /* … */;
+  --state-running: /* … */;
+  --state-aside: /* … */;
+}
+```
+
+### One line your build needs, and it fails silently without it
+
+`Pill` renders `className="animate-pulse"` on the dot that marks a moving row. It is the only class
+name in the package, because there is no token for motion and there should not be. Tailwind emits
+the classes it finds by scanning the globs a project declares with `@source`, a project's globs
+cover its own source, and installed from here this file is under `node_modules`. The utility stops
+being emitted, the dot stops pulsing, and **nothing fails**: no error, no warning, no red test, and
+the class is not even in the exported HTML, because a running pill only exists at run time from
+fetched data.
+
+Add the glob, pointing at the built output:
+
+```css
+@source "../../../packages/ui/node_modules/ratchet-ui/dist";
+```
+
+`dist` and not `src`, because `files` ships the compiled output and only `tokens.css` out of `src`,
+so a glob at `src` would scan one stylesheet and find nothing, silently and in the same way.
+`@source` paths resolve relative to the stylesheet, not to the project root, and Tailwind does not
+warn about a glob that matches nothing, so a path that is wrong by one directory looks exactly like
+a path that is right.
+
+Then check it, in the repository that would lose the dot:
+
+```sh
+grep -o '\.animate-pulse{[^}]*}' apps/web/out/_next/static/chunks/*.css
+```
+
+[ADOPTING.md](ADOPTING.md) is the full bill for a second dashboard taking these, component by
+component, including what each one costs.
+
 ## What is deliberately not here
 
-**No React components, and not even React as a peer dependency.** This is the part most likely to
-look like unfinished work, so here is the reason in full.
-
-A component that renders a Tailwind utility class only works if Tailwind emitted that class, and
-Tailwind emits classes it finds by scanning the globs a project declares with `@source`. Both
-consuming projects scan exactly two: their own `app` directory and their own `packages/ui/src`. A
-component moved into `node_modules` is inside neither. The utility silently stops being emitted, and
-the component renders with **no error, no warning and no failing test** — in the case that prompted
-this, a pulsing status dot that simply stopped pulsing.
-
-That failure is invisible to CI, which is exactly why it is not worth risking to ship a button
-early. Components can move here later, once the `@source` question has a tested answer. Version
-0.1.0 ships the part that has no such trap in it.
+**No component that behaves differently in the two dashboards.** Version 0.1.0 shipped no
+components at all and said their absence was a decision. Half of that was right and is quoted under
+[the components](#the-components): the Tailwind trap is real, was reproduced, and now has a tested
+remedy. The other half has been narrowed rather than dropped. What is still refused is a component
+whose two versions differ in what they can DO: a fold that remembers whether the reader opened it, a
+timestamp that ticks on its own, a field that owns its input and wires `aria-describedby` to its
+help. Eleven such pairs were examined and ten stayed where they were, because moving one deletes a
+capability its author built on purpose, and no amount of parameterisation puts it back without
+turning the shared file into both versions bolted together.
 
 **No schema library.** The validators are hand-written because a schema dependency here is a version
 negotiation with everybody who adopts this. More code in this repository, none in yours.
@@ -159,7 +214,7 @@ Over a git reference, until there is a reason to be on npm:
 
 ```json
 "dependencies": {
-  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.1.0"
+  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.2.0"
 }
 ```
 

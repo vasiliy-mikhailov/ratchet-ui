@@ -3,7 +3,7 @@
  *
  * This file exists so that a component in this package can write `var(--bg-panel)` and a consumer
  * can know, without reading the component, exactly which custom properties it is expected to
- * define. That list is the contract. It is twenty-three names, and it is the entire point of the
+ * define. That list is the contract. It is thirty-three names, and it is the entire point of the
  * file.
  *
  * THE VALUES BELOW ARE NOT A PALETTE AND MUST NEVER BECOME ONE.
@@ -116,6 +116,42 @@
    */
   --danger: #8c2f2f;
   --danger-hover: #742626;
+
+  /*
+   * TONE, FOR THE SIX PILLS, AND NOT ONE OF THESE NAMES IS A STATE.
+   *
+   * A pill has to be one of six colours without knowing what the thing it labels is called. Every
+   * consumer has its own vocabulary for that, and the two this package was extracted from share not
+   * one word of it: `PASS` against `verified/pr-ready`, `blocked-dependency` against `by-design`. So
+   * the pill reads six names that describe what a pill is FOR, and each consumer aliases them onto
+   * its own states in its own stylesheet. That aliasing is why the component can be shared at all.
+   *
+   * `quiet` is a thing that is fine and uninteresting; `aside` is a thing set down on purpose. They
+   * are different claims, and a consumer that paints them alike loses a distinction its own triage
+   * queue depends on.
+   */
+  --state-good: #4a4a4e;
+  --state-warn: #78787e;
+  --state-quiet: #a0a0a6;
+  --state-alarm: #1a1a1c;
+  --state-running: #4a4a4e;
+  --state-aside: #78787e;
+
+  /*
+   * A COUNT THAT MOVED, which is not the same claim as a settled outcome and so does not share its
+   * names. A tally reporting that four vulnerabilities cleared is arithmetic getting better; a pill
+   * reading PASS is a verdict. Both consumers keep those vocabularies apart already, and one pair of
+   * names for both would delete the distinction here to save two lines.
+   */
+  --state-count-good: #4a4a4e;
+  --state-count-alarm: #1a1a1c;
+
+  /*
+   * THE PROGRESS BAR'S GRADIENT, from the colour of working to the colour of finished. Named after
+   * the bar rather than after either consumer's two states, for the same reason the tones are.
+   */
+  --state-progress-from: #c9c9ce;
+  --state-progress-to: #78787e;
 }
 
 /*
@@ -155,4 +191,19 @@
 
   --danger: #c97a7a;
   --danger-hover: #d89090;
+
+  /* The tones lift the same way the text does: the light ramp's darkest tone is the dark ramp's
+     brightest, so `alarm` stays the loudest thing in the row in both themes. */
+  --state-good: #b4b4ba;
+  --state-warn: #85858c;
+  --state-quiet: #6a6a72;
+  --state-alarm: #ededef;
+  --state-running: #b4b4ba;
+  --state-aside: #85858c;
+
+  --state-count-good: #b4b4ba;
+  --state-count-alarm: #ededef;
+
+  --state-progress-from: #43434a;
+  --state-progress-to: #85858c;
 }

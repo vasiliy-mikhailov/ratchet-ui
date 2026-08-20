@@ -75,30 +75,61 @@ group('what the package references', () => {
    * the header promises that this file lists what the package's own code needs, and a component
    * reaching for a token nobody defined would fall back to nothing and render invisibly.
    *
-   * Empty today, because version 0.1.0 ships no components on purpose. The test is here now rather
-   * than later so that the first component to arrive is checked by something that already works.
+   * This is the check that decides whether a component may live here. It fired on the first one:
+   * moving a pill in unchanged left six `var(--state-pass)`-shaped names pointing at a vocabulary
+   * that belongs to one consumer, and the build stayed red until they became contract names.
    */
   const referenced = new Set<string>()
-  for (const file of readdirSync(here)) {
-    if (file === 'tokens.css') continue
-    // COMMENTS ARE STRIPPED FIRST, and leaving them in is not a hypothetical mistake: the first
-    // version of this test failed because `style.ts` explains itself by quoting `var(--state-pass)`
-    // in prose, and this file quotes `var(--name)` two lines above. Both were reported as tokens
-    // the package uses and does not define.
-    //
-    // The stripping is allowed to be crude, and may take a `//` inside a string literal with it,
-    // because the two errors are not equally bad. Over-stripping loses a reference and weakens the
-    // check quietly. Under-stripping fails the build every time somebody writes a token name in a
-    // sentence, which trains people to delete the test.
-    const source = readFileSync(join(here, file), 'utf8')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/\/\/[^\n]*/g, '')
-    for (const match of source.matchAll(/var\((--[a-z0-9-]+)/g)) {
-      referenced.add(match[1] ?? '')
+  const defined = new Set<string>()
+
+  function readSourcesUnder(directory: string): void {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        readSourcesUnder(join(directory, entry.name))
+        continue
+      }
+      if (entry.name === 'tokens.css') continue
+      // TESTS ARE NOT THE CONTRACT. A test builds token names out of template literals to check a
+      // component against all six tones at once, and `var(--state-${tone})` reads to this regex as
+      // a reference to a token called `--state-`, which nothing defines and nothing should. What
+      // the header promises is that the package's SHIPPED code asks only for names listed here, and
+      // shipped code is what `tsconfig.build.json` emits, which is everything except these files.
+      if (entry.name.includes('.test.')) continue
+      // COMMENTS ARE STRIPPED FIRST, and leaving them in is not a hypothetical mistake: the first
+      // version of this test failed because `style.ts` explains itself by quoting `var(--state-pass)`
+      // in prose, and this file quotes `var(--name)` two lines above. Both were reported as tokens
+      // the package uses and does not define.
+      //
+      // The stripping is allowed to be crude, and may take a `//` inside a string literal with it,
+      // because the two errors are not equally bad. Over-stripping loses a reference and weakens the
+      // check quietly. Under-stripping fails the build every time somebody writes a token name in a
+      // sentence, which trains people to delete the test.
+      const source = readFileSync(join(directory, entry.name), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\/\/[^\n]*/g, '')
+      for (const match of source.matchAll(/var\((--[a-z0-9-]+)/g)) {
+        referenced.add(match[1] ?? '')
+      }
+      // A COMPONENT MAY DEFINE A PROPERTY FOR ITS OWN USE, and that one is not part of the contract.
+      // `Pill` sets `--pill-tone` on the element it draws and reads it from three declarations so
+      // the text, the wash and the edge cannot drift apart. Listing it in tokens.css would tell a
+      // consumer to define something no consumer can usefully define, which is a lie about what the
+      // contract is. So the names the source declares for itself are subtracted from what it asks
+      // the consumer for.
+      for (const match of source.matchAll(/'(--[a-z0-9-]+)':/g)) {
+        defined.add(match[1] ?? '')
+      }
     }
   }
 
+  readSourcesUnder(here)
+
   it('defines every token its own code refers to', () => {
-    expect([...referenced].filter((name) => !light.includes(name))).toEqual([])
+    const asked = [...referenced].filter((name) => !defined.has(name))
+    expect(asked.filter((name) => !light.includes(name))).toEqual([])
+  })
+
+  it('refers to something, so that an empty walk cannot pass this group by finding nothing', () => {
+    expect(referenced.size).toBeGreaterThan(0)
   })
 })

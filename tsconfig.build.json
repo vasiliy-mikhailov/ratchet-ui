@@ -9,5 +9,8 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  // BOTH EXTENSIONS. `src/**/*.test.ts` alone does not match a `.tsx` test, and the result is not a
+  // build error: the test compiles into `dist` and ships inside the package, where neither the
+  // dist-drift check nor the export-map check has any reason to look at it.
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }
