@@ -6,8 +6,9 @@ component needs without deciding what colour it is.
 
 Apache 2.0. No dependencies. No React.
 
-```
-pnpm add ratchet-ui
+```sh
+# not on npm yet; depend on a release tag
+pnpm add github:vasiliy-mikhailov/ratchet-ui#v0.1.0
 ```
 
 ## Why this exists
@@ -151,6 +152,33 @@ Nothing here requires a rewrite. The manifest and health shapes are already serv
 by both pipelines and cost nobody a rename. The rest is a request rather than an instruction, and
 [ADOPTING.md](ADOPTING.md) is that request written out: what a tool would rename, what it would keep,
 and which parts are worth taking on their own even if the rest is declined.
+
+## Depending on it
+
+Over a git reference, until there is a reason to be on npm:
+
+```json
+"dependencies": {
+  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.1.0"
+}
+```
+
+pnpm resolves that through codeload with no token and no registry, and records the resolved commit
+and an integrity hash in `pnpm-lock.yaml`. That is the point of pinning a tag rather than a branch:
+`pnpm install --frozen-lockfile` then fails loudly on a reference that has moved, instead of
+shipping whatever `main` happens to say today.
+
+**Depend on a tag, never on `main`.** A release tag is a complete package and `main` is not: the tag
+carries `dist/`, which `main` gitignores. That looks backwards and is the only arrangement that
+works. A codeload tarball is the repository rather than an npm package, so a gitignored build output
+is simply absent from it, and the npm answer to that, a `prepare` script, is refused by pnpm 10 for
+a git dependency unless the consumer allowlists it **by resolved commit sha**. Writing this
+package's sha into a second file in your repository would undo the one guarantee the lockfile is
+there to give. `release.sh` carries the full reasoning and is what cuts a tag.
+
+What the arrangement buys a consumer is nothing to do: no allowlist entry, no `transpilePackages`,
+no build step, and `.d.ts` files that `skipLibCheck` covers rather than somebody else's TypeScript
+source compiled under your compiler settings.
 
 ## Development
 

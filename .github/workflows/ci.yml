@@ -39,6 +39,18 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+      # A RELEASE TAG CARRIES ITS OWN BUILD OUTPUT, because a codeload tarball is the repository
+      # and pnpm 10 will not run a prepare script for a git dependency without a sha-keyed allowlist
+      # in the consumer. See release.sh. That arrangement has one failure mode, committed JavaScript
+      # that has drifted from the TypeScript beside it, and it is silent: both halves type-check.
+      #
+      # This is the check for it. On a release commit dist is tracked, the build above has just
+      # rewritten it, and any difference is drift. On main dist is untracked, git has nothing to
+      # compare, and this passes without asserting anything, which is correct: there is nothing
+      # committed there that could be stale.
+      - name: committed build output, where there is any, is what the source produces
+        run: git diff --exit-code -- dist
+
       # The build emits the files `exports` in package.json points at. A package that type-checks,
       # tests green and then publishes a broken export map is a real and common outcome, because
       # nothing above this line reads that map. This does.
