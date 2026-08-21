@@ -8,7 +8,7 @@
  * rather than by care. One thing here does not render at all, `useAsk`, and it is here anyway
  * because the line these entry points draw is React and not JSX.
  *
- * WHAT QUALIFIES ONE OF THESE TO BE HERE, IN TWO RULES RATHER THAN ONE.
+ * WHAT QUALIFIES ONE OF THESE TO BE HERE, IN THREE RULES RATHER THAN TWO.
  *
  * The first is 0.2.0's and is unchanged: both consuming dashboards had written it, and the
  * difference between their two versions was the palette rather than the behaviour. That rule is
@@ -24,9 +24,22 @@
  * and `SettingCard`'s two optional props all arrived that way, and each file says so in its own
  * header, because the next reader will find half of it familiar and half of it new.
  *
- * WHAT NEITHER RULE ADMITS is a component only one side has ever had. There is no version of it to
- * be canonical, and adopting the other's wholesale is a decision this package is not the place to
- * make. It stays where it is.
+ * The third is 0.4.0's and exists because the first one had a hole in it. Rule one asks for TWO
+ * things, that both dashboards wrote it and that the difference is palette rather than behaviour.
+ * When the second half fails, rule one excludes itself and then hands the case to nothing, and what
+ * got written down in `ADOPTING.md` as the reason to decline `CodeBlock` was a list of everything
+ * the other version does MORE. So: where both repositories wrote it and the versions differ in
+ * BEHAVIOUR rather than palette, the shared one is the version WITH CALL SITES. Where neither has
+ * call sites, neither moves. That is the same standard rule two already applied, which took the
+ * behaviour from whichever side had it and the name from whichever side named it; this finishes it
+ * rather than adding to it. `CodeBlock` and `Lamp` arrived under it, from the sibling dashboard's
+ * request, and each says so in its own header.
+ *
+ * WHAT NO RULE ADMITS is a component only one side has ever had. There is no version of it to be
+ * canonical, and adopting the other's wholesale is a decision this package is not the place to
+ * make. It stays where it is. `Semaphore`, the two-lamp component `Lamp` was lifted out of, is
+ * exactly that case and was deliberately not offered: what red and green mean inside it is one
+ * pipeline's vocabulary, so the lamp came and its meanings did not.
  *
  * TWO TAB ROWS EXIST AND ONLY ONE OF THEM IS HERE. `SectionTabs` is the ruled bar across the top of
  * a page, which lights the section being read with a filled pill. The other kind, an underline row
@@ -40,6 +53,7 @@
  */
 
 export { ACCOUNT, ACCOUNT_QUIET, Account, type AccountProps } from './Account.js'
+export { CodeBlock, type CodeBlockProps } from './CodeBlock.js'
 export {
   DataTable,
   type Align,
@@ -49,6 +63,7 @@ export {
 export { EmptyNote, type EmptyNoteProps } from './EmptyNote.js'
 export { HumanCost, type HumanCostProps } from './HumanCost.js'
 export { KeyStatus, type KeyStatusProps } from './KeyStatus.js'
+export { Lamp, type LampProps } from './Lamp.js'
 export { Loaded, type LoadedProps } from './Loaded.js'
 export {
   CORNER,

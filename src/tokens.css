@@ -3,7 +3,7 @@
  *
  * This file exists so that a component in this package can write `var(--bg-panel)` and a consumer
  * can know, without reading the component, exactly which custom properties it is expected to
- * define. That list is the contract. It is thirty-three names, and it is the entire point of the
+ * define. That list is the contract. It is thirty-seven names, and it is the entire point of the
  * file.
  *
  * THE VALUES BELOW ARE NOT A PALETTE AND MUST NEVER BECOME ONE.
@@ -152,6 +152,35 @@
    */
   --state-progress-from: #c9c9ce;
   --state-progress-to: #78787e;
+
+  /*
+   * THE FOUR THINGS A SYNTAX HIGHLIGHTER CAN SAY, AND A SEVENTH PREFIX BECAUSE OF THEM.
+   *
+   * `CodeBlock` colours four kinds of token and nothing else: a comment, a string, a keyword and a
+   * number. That vocabulary is about as close to universal as anything a shared contract holds. It
+   * is not a state, not a surface and not an accent, so it does not belong under any of the six
+   * prefixes that came before it, and folding it into `--text-` would say a keyword is a weight of
+   * importance rather than a kind of thing.
+   *
+   * THESE ARE DRAB AND ACHROMATIC, WHICH IS THE HARD HALF OF THE JOB. Four identical greys are a
+   * useless highlighter, and the usual way out is hue, which is exactly what this file may not
+   * have. So the ramp separates on three channels at once. Lightness first, in even steps of about
+   * 1.4x in contrast, so no two are confusable: measured against `--bg-subtle`, keyword 9.06,
+   * string 6.41, number 4.59, comment 3.20 in light, and 9.00 / 6.42 / 4.60 / 3.19 in dark. Then
+   * temperature, alternating cool, warm, cool, neutral, so every ADJACENT pair differs in lean as
+   * well as in lightness. Saturation stays between one and twenty-one per cent, so these read as a
+   * cool grey, a warm grey and two plain greys rather than as blue and brown. The fourth channel is
+   * `font-style: italic` on the comment, which the component applies, costs no token, and survives
+   * a monochrome display.
+   *
+   * Keyword is the darkest because keywords are the structure; comment is the lightest because a
+   * comment is the part a reader skips. A consumer that wants a real syntax palette overrides these
+   * four the same way it overrides the other thirty-three.
+   */
+  --code-comment: #838386;
+  --code-string: #5c5345;
+  --code-keyword: #383e4d;
+  --code-number: #646a79;
 }
 
 /*
@@ -206,4 +235,13 @@
 
   --state-progress-from: #43434a;
   --state-progress-to: #85858c;
+
+  /* The same four steps and the same three channels, lifted so that the ramp sits on a dark
+     surface instead of under a light one. The contrasts against `--bg-subtle` are within a
+     hundredth of the light block's, so a reader switching themes does not have to relearn which
+     grey is a string. */
+  --code-comment: #737376;
+  --code-string: #b1a89a;
+  --code-keyword: #c2c8d7;
+  --code-number: #888e9d;
 }

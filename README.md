@@ -8,7 +8,7 @@ Apache 2.0. No dependencies. React is a peer, and only the `./components` entry 
 
 ```sh
 # not on npm yet; depend on a release tag
-pnpm add github:vasiliy-mikhailov/ratchet-ui#v0.3.0
+pnpm add github:vasiliy-mikhailov/ratchet-ui#v0.4.0
 ```
 
 ## Why this exists
@@ -32,7 +32,7 @@ speaks it. That is what is in here, and nothing else is.
 | `src/tokens.css` | The custom-property names a component may reference, with placeholder values. |
 | `src/style.ts` | Adding CSS custom properties to a style object without depending on React. |
 | `src/time.ts` | How long something took, spelled one way: `8m 45s`, `2h`. No React. |
-| `src/components/` | Fourteen React components, one table shell, four table style objects, one hook. |
+| `src/components/` | Sixteen React components, one table shell, four table style objects, one hook. |
 | `tsconfig.base.json` | The compiler settings both consuming repositories already had, byte for byte. |
 
 ## The types are only half of a contract
@@ -91,7 +91,7 @@ Each project gets the exhaustive union it can switch over. The shared type stays
 
 ## The token contract carries no palette
 
-`src/tokens.css` is a list of thirty-three custom-property **names**. The values in it are a
+`src/tokens.css` is a list of thirty-seven custom-property **names**. The values in it are a
 deliberately drab grey ramp, chosen for this file, belonging to nobody. They are there so an
 unthemed consumer sees something legible and a component's tests have something to compute against,
 and they are chosen to look unfinished on purpose. A default that looked good would get shipped by
@@ -128,14 +128,14 @@ mounted inside a shell has to follow the shell's choice and the shell needs some
 
 ## The components
 
-`ratchet-ui/components` ships fourteen: `Account`, `DataTable`, `EmptyNote`, `HumanCost`,
-`KeyStatus`, `Loaded`, `PageHeader`, `Pill`, `ProgressBar`, `Section`, `SectionTabs`, `SettingCard`,
-`Tally` and `TimeSpent`, plus the style objects they sit in, the four declarations a table is made
-of, the `useAsk` hook and the `Style` type they are written against. React is a peer at `>=19`,
-declared for this entry alone. Nothing under `.`, `./wire`, `./check`, `./style` or `./time`
-imports React, so a consumer that only wants the contract still pays nothing.
+`ratchet-ui/components` ships sixteen: `Account`, `CodeBlock`, `DataTable`, `EmptyNote`,
+`HumanCost`, `KeyStatus`, `Lamp`, `Loaded`, `PageHeader`, `Pill`, `ProgressBar`, `Section`,
+`SectionTabs`, `SettingCard`, `Tally` and `TimeSpent`, plus the style objects they sit in, the four
+declarations a table is made of, the `useAsk` hook and the `Style` type they are written against.
+React is a peer at `>=19`, declared for this entry alone. Nothing under `.`, `./wire`, `./check`,
+`./style` or `./time` imports React, so a consumer that only wants the contract still pays nothing.
 
-Two rules admit a component here and both are narrow.
+Three rules admit a component here and all three are narrow.
 
 The first is 0.2.0's: both dashboards had written it, and with the comments stripped the two
 versions differed by the palette rather than by the behaviour.
@@ -148,9 +148,23 @@ that extracted it actually contributed, and a column heading is not a component 
 that way and each says so in its own header, since a file like that reads as an import to one
 repository and as a rewrite to the other.
 
-Neither rule admits a component only one side has ever had. There is no second version for the rule
-to choose between, and adopting one wholesale is a decision a shared package is the wrong place to
-make.
+The third is 0.4.0's, and it is there because the first rule had a hole in it. Rule one asks for two
+things at once: that both dashboards wrote the component, and that the difference between the two
+versions is the palette rather than the behaviour. When the second half fails, rule one excludes
+itself and then hands the case to nothing. `CodeBlock` was declined that way, and the reason written
+down for declining it was a description of everything the other version does *more*. So: **where
+both repositories wrote it and the versions differ in behaviour rather than palette, the shared one
+is the version with call sites. Where neither has call sites, neither moves.** That is the standard
+rule two already applied, which takes the behaviour from whichever side has it and the name from
+whichever side named it; this finishes that principle rather than adding a new one. `CodeBlock` and
+`Lamp` came in under it.
+
+No rule admits a component only one side has ever had. There is no second version for the rule to
+choose between, and adopting one wholesale is a decision a shared package is the wrong place to
+make. `Semaphore`, the two-lamp component `Lamp` was lifted out of, is that case and was
+deliberately not offered: what red and green mean inside it is one pipeline's vocabulary. `Lamp`
+takes its colour and its whole label as props for exactly that reason, so no build vocabulary
+travels with it.
 
 The rule is checked rather than asserted: `tokens.test.ts` fails the build on a component that
 reaches for a custom property the contract does not list, which is exactly what happened the first
@@ -238,7 +252,7 @@ Over a git reference, until there is a reason to be on npm:
 
 ```json
 "dependencies": {
-  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.3.0"
+  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.4.0"
 }
 ```
 

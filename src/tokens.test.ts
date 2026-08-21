@@ -57,8 +57,22 @@ group('the token contract', () => {
     expect(light.filter((name) => colours.test(name))).toEqual([])
   })
 
-  it('groups every name under one of the six functional prefixes the header describes', () => {
-    const prefixes = ['--bg-', '--text-', '--border-', '--state-', '--focus-', '--accent-', '--danger']
+  it('groups every name under one of the functional prefixes the file describes, since a name outside all of them is a vocabulary nobody agreed to', () => {
+    // `--code-` IS THE SEVENTH AND ARRIVED WITH `CodeBlock`. A syntax token is not a state, not a
+    // surface and not an accent, and filing it under `--text-` would claim a keyword is a weight of
+    // importance rather than a kind of thing. Growing this list is the deliberate act this test
+    // exists to force: a name that fits none of these fails the build until somebody decides which
+    // it is.
+    const prefixes = [
+      '--bg-',
+      '--text-',
+      '--border-',
+      '--state-',
+      '--focus-',
+      '--accent-',
+      '--danger',
+      '--code-',
+    ]
     const strays = light.filter((name) => !prefixes.some((prefix) => name.startsWith(prefix)))
     expect(strays).toEqual([])
   })

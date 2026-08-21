@@ -1,20 +1,294 @@
 # Adopting ratchet-ui
 
-This is a request, not an instruction. There are three of them in here and they are independent.
+This is a request, not an instruction. There are four of them in here and they are independent.
 
-**Part one, the twelve of 0.3.0**, is new and is why this document was reopened. Eleven components
-and one duration formatter leave your `packages/ui/src` and come back as imports. It is the part with
-a real cost, the cost is written out item by item rather than summarised, and one of the twelve
-repaints your settings page.
+**The amendment to rule one** comes first and is not an ask at all. It is a correction to how this
+document decided things, it was argued for by the sibling repository, and it stands whether or not
+anything below it is taken.
 
-**Part two, the five components of 0.2.0**, is the same ask one release earlier, unchanged. You have
-taken it already; it stays here as the record of what was agreed and why.
+**Part one, the two of 0.4.0**, is new. `CodeBlock` and `Lamp` go the other way for the first time:
+both were written in `fix-java-svace-markers`, both are being taken from it rather than offered to
+it, and what you do is replace two of your own files with imports. One of the two changes what your
+tool log and your test artefacts look like, and that change is written out rather than summarised.
 
-**Part three, the wire vocabulary**, is unchanged from 0.1.0 and is furthest down.
+**Part two, the twelve of 0.3.0**, is the release before. Eleven components and one duration
+formatter leave your `packages/ui/src` and come back as imports.
+
+**Part three, the five components of 0.2.0**, is the same ask two releases earlier, unchanged. You
+have taken it already; it stays here as the record of what was agreed and why.
+
+**Part four, the wire vocabulary**, is unchanged from 0.1.0 and is furthest down.
 
 ---
 
-# Part one: the twelve of 0.3.0
+# The amendment to rule one, and the case it could not decide
+
+**Rule one was wrong, and `CodeBlock` is the proof.** As written in 0.2.0 it required two things at
+once: that both repositories had written the thing, AND that the difference between the two versions
+was the palette rather than the behaviour. Read carefully, that is not a rule for choosing between
+two versions. It is a rule that only fires when there is nothing to choose. The moment two versions
+differ in behaviour, which is the only interesting case, rule one **excludes itself and then hands
+the case to nothing at all**.
+
+That is exactly what happened to `CodeBlock`. It sits in the 0.2.0 table of components not being
+asked for, and the entry against it reads:
+
+> Lexes Java in one alternation, `matchAll` for re-entrancy, `language` so colouring something the
+> lexer cannot read stops being silent.
+
+Every word of that is a description of what **your** version does *more*. It was recorded in the
+column headed "what it does that the other cannot", and then used as the reason not to take it. A
+list of a version's advantages is not an argument for leaving it behind. That was this project's
+error rather than a difference of taste, and it is corrected here rather than quietly reversed.
+
+**The third rule, which finishes rule two rather than adding to it:**
+
+> Where both repositories wrote it and the versions differ in BEHAVIOUR rather than palette, the
+> shared one is **the version with call sites**. Where neither has call sites, neither moves.
+
+This is not a new standard. It is the one 0.3.0 already ran on, which took the behaviour from
+whichever side actually had it and the name from whichever side had named it, applied to the case
+rule one left uncovered. Behaviour that nothing calls is behaviour nobody has under test; behaviour
+with call sites has been used, and the drift the sibling found while comparing these two files is
+what a component with no call sites does while nobody is looking.
+
+**What it decided here.** `bump-java-version`'s `CodeBlock` is twenty-three lines, takes
+`{ children: string }`, and has **zero** call sites: three greps in the whole repository, and they
+are the type, the function and the barrel export. The same repository writes a `<pre>` inline on its
+settings page whose eight style declarations are identical to that component's and which has
+**dropped** the `fontFamily` the component carries. So an unused component had already drifted from
+its own inline copy, in the repository that owns the rule. Yours is eighty-eight lines with three
+call sites. Under rule three, yours is the shared one, and it is what shipped in 0.4.0.
+
+**Rule three does not decide the box the source sits in.** Both repositories wrote that box and the
+difference between them is chrome, which is precisely the case rule one governs correctly, so the
+shell is `bump-java-version`'s. The consequence lands on you rather than on us and is written out
+under [`CodeBlock`](#codeblock-and-the-shell-is-the-part-you-lose) below, with the count of call
+sites, in the same shape `EmptyNote` got in 0.2.0 when the sides were the other way round.
+
+---
+
+# Part one: the two of 0.4.0
+
+## What is being taken, and what it costs you
+
+Two components move to `ratchet-ui/components`, and for the first time in this document the shared
+implementation is **yours**:
+
+| Yours today | Becomes |
+| --- | --- |
+| `packages/ui/src/primitives/CodeBlock.tsx` | `import { CodeBlock } from 'ratchet-ui/components'` |
+| `Lamp`, inside `packages/ui/src/domain/Semaphore.tsx` | `import { Lamp } from 'ratchet-ui/components'` |
+
+**Both arrived because you asked for them, and the components say so.** `CodeBlock.tsx` and
+`Lamp.tsx` in the package each carry a paragraph naming the argument, not just the fact: for
+`CodeBlock`, that colouring by four passes cannot keep a token's insides out of another token's
+reach and that a rule which excluded itself had handed the case to nothing; for `Lamp`, the line you
+drew around it.
+
+**`Semaphore` is not here and was not asked for.** You declined to offer it, on the grounds that
+what red and green MEAN inside it is your pipeline's vocabulary: a red lamp is a test that failed on
+purpose, green is reached only when red went red, and a marker nobody has judged has no lamps at
+all. That reasoning is accepted in full. `Lamp` takes `colour` and the whole `label` as props for
+exactly that reason, and nothing in the package knows either word.
+
+**One thing in your file is corrected rather than copied, and it is a comment.** See
+[the precedence claim](#the-one-comment-that-changed) below. Your design is unchanged.
+
+## `CodeBlock`, and the shell is the part you lose
+
+**What you keep, which is everything that made it worth taking.** The single alternation, the four
+branches in the order comment, string, word, number, `matchAll`, the `language` prop, the blank
+render, `kindOf`, the `COLOUR` record resolving through custom properties, and the italic comment.
+Byte for byte the same behaviour, re-authored against this package's conventions rather than
+transplanted, because you offered to write it for the package yourself and a transplant is not what
+that deserved.
+
+**What changes is the box.** Both repositories wrote the box; the difference is chrome; rule one
+gives chrome to `bump-java-version`. So:
+
+| | Yours today (`primitives/block.ts`) | The shared shell |
+| --- | --- | --- |
+| background | `--bg-card` | `--bg-subtle` |
+| edge | `border-left: 2px solid --border-strong` | `border: 1px solid --border-soft` |
+| corner | `6px` | `6px`, unchanged |
+| padding | `8px 10px` | `10px 12px` |
+| font size | `11.5px` | `12px` |
+| face | whatever the browser gives a `<pre>` | `ui-monospace, SFMono-Regular, Menlo, monospace` |
+| margin | `8px 0` | **none: the call site's** |
+
+**The left rule cannot be restored from outside the component, and that is the honest cost.** A
+wrapper can put a margin back. It cannot turn a full border into a left rule. This is the
+`EmptyNote` situation of 0.2.0 with the sides swapped, and it is written up here for the same
+reason: so it arrives as a decision rather than as a surprise in a screenshot.
+
+**Three call sites need a wrapper, or your spacing moves.** The shell sets `margin: 0` because three
+different margins exist for one box across the two repositories (`6px 0`, `0 0 10px`, `8px 0`), and
+a component that picks one of the three is wrong at two call sites. `HEADING` already ships under
+this arrangement. Yours:
+
+```tsx
+// packages/ui/src/domain/ToolLog.tsx:62 and :68
+// packages/ui/src/domain/TestArtifact.tsx:50
+<div style={{ margin: '8px 0' }}>
+  <CodeBlock code={call.arguments} />
+</div>
+```
+
+**`BLOCK` stays in your repository and is not exported from the package.** `DiffBlock` and
+`FlaggedSource` render into it too, so `primitives/block.ts` does not go anywhere. The consequence
+is worth saying out loud: **your code blocks stop matching your diff blocks**, because one of the
+three moves to the shared shell and two do not. If that is the wrong trade, the alternative is to
+decline `CodeBlock` and keep all three consistent, and nothing else in this part depends on it.
+
+**`white-space: pre` is not lost.** The shared shell does not declare it, because `<pre>` carries it
+from the user-agent stylesheet, which is where yours was getting it as well for every property the
+two agree on. A wrapped line of source still does not wrap.
+
+**The four token names cost you nothing.** `--code-comment`, `--code-string`, `--code-keyword` and
+`--code-number` are the four new names in the contract, and your `domain.css` already defines all
+four in both blocks, at lines 84-87 and 124-127. The package ships placeholder values for them,
+drab and achromatic like the other thirty-three, and yours override them the moment your stylesheet
+loads. No value travelled in either direction.
+
+## `Lamp`, and the three appearances
+
+**The shape, which adds nothing to the contract:**
+
+```ts
+export type LampProps = {
+  lit: boolean      // the build said so
+  reached: boolean  // this stage was got to at all
+  colour: string    // the caller's colour, so no build vocabulary travels
+  label: string     // the whole sentence; the caller owns what its lamps mean
+}
+```
+
+**`Semaphore` keeps everything that knows what a lamp means.** `MEANS`, `APPEARANCE`, the
+`red`/`green` axis, the `=== true` guard against the unquoted-boolean bug, and the derivation of
+`reachedGreen` from the red having gone red. What it now does is compose the sentence itself and
+pass it whole:
+
+```tsx
+<Lamp
+  lit={flags.red === true}
+  reached={state !== 'queued'}
+  colour="var(--build-red)"
+  label={`${MEANS.red}, ${APPEARANCE[appearance]}`}
+/>
+```
+
+**The label is the whole sentence rather than a fragment the component finishes, and that is a
+change from your version.** Yours joined `MEANS[which]` to `APPEARANCE[appearance]` inside the
+component. The shared one cannot: it would fix the wording of the three states in a package that
+must not know what they are, and it would make every label a sentence assembled by two authors who
+cannot read each other. The caller varying the whole sentence by state is the same number of strings
+and one author.
+
+**Two appearances change, and the middle one changes for the better.** Your dim lamp is
+`background: var(--bg-subtle)` inside a solid `--build-none` ring, which is the same neutral your
+hollow lamp is drawn in, so the two are parted by the dash alone. The shared dim lamp is a wash of
+**the caller's colour** at 18% inside a ring of it at 55%, and hollow carries none of that colour at
+all. Three signals now part them rather than one: colour identity, fill, and stroke. A stage that
+ran and answered no is still ABOUT that colour; a stage never reached has nothing to say in it.
+
+| | Yours today | Shared |
+| --- | --- | --- |
+| lit | fill, ring and glow from one `--lamp` | unchanged |
+| dim | `--bg-subtle` fill, solid `--build-none` ring | 18% wash of the caller's colour, 55% ring of it |
+| hollow | transparent, dashed `--build-none` ring | transparent, dashed `--border-strong` ring |
+
+`--build-none` is already `var(--border-strong)` in your `domain.css`, both blocks, so the hollow row
+is a rename and not a repaint.
+
+**`role="img"` with the whole sentence as its accessible name is kept exactly as you had it**,
+including the `title` alongside for the reader who does have a mouse. It is the one part of this
+that needed no argument.
+
+## The one comment that changed
+
+Your file says, of the alternation:
+
+> Order in the alternation is the precedence: comment, then string, then word, then number.
+
+**That is true as a statement of intent and it is not what protects a string today.** The four
+branches have disjoint opening characters: `/` for a comment, a quote for a string, a letter for a
+word, a digit for a number. Alternation order only decides ties at the same starting index, and
+there are no ties. Checked by running your alternation and its exact reverse over seven adversarial
+inputs, including `// the "public" API`, a keyword inside a string, a quote inside a block comment,
+an escaped quote, and hex, underscored and exponent literals: identical tokens from both orders,
+every time.
+
+**What actually does the work is one alternation scanned once, and the guarantee is consumption.** A
+global pattern finds the earliest match position, takes the whole token there, and resumes after it.
+`// the "public" API` matches the comment branch at index 0 and eats to end of line, so the quote
+seven characters along is never offered to the scanner and `public` is never a starting position.
+That is why a keyword inside a string stays inside the string.
+
+**The order is kept, and the comment says which of the two is load-bearing.** The order is the right
+default for the next branch anyone adds, and the first branch whose opening character overlaps an
+existing one, an annotation `@\w+` or a text block, will need it. But a reader who believes order is
+the mechanism will go and reorder branches the day a string breaks, and the branches are not where
+the bug will be. This is a correction to a comment, not to a design.
+
+**And one thing that was expected of `matchAll` and is not true.** It does **not** reset the
+pattern's `lastIndex`. Per spec it clones the pattern, copies the current `lastIndex` into the
+clone, and advances only the clone. Measured:
+
+```js
+JAVA.exec('int a; int b;')        // JAVA.lastIndex is now 3
+[...'int a;'.matchAll(JAVA)]      // []  <- every token silently lost
+JAVA.lastIndex                    // still 3  <- matchAll never wrote it back
+```
+
+So the purchase is sharper than re-entrancy: `matchAll` never **writes** the shared cursor, so a
+lexing pass cannot leave contamination behind for the next one, and every block starts at zero only
+because nothing ever moves it off zero. An `exec` loop has the opposite property and fails silently,
+since any early exit leaves the cursor mid-source and the next block on the page starts scanning
+from the middle of its own text. The rule that falls out is written into the shared file: **this
+pattern is only ever handed to `matchAll`**. Never `exec`, never `test`, by anyone. A test can only
+guard the half it can see, which is that two blocks in one tree render identically, and that test is
+there.
+
+## Installing it
+
+```json
+"dependencies": {
+  "@fsm/types": "workspace:*",
+  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.4.0"
+}
+```
+
+**The `@source` line you already have still covers it.** 0.4.0 adds no utility class: `Pill`'s
+`animate-pulse` is still the only one in the package. Neither new component has a `className` at all.
+
+## The whole bill, in one place
+
+| Item | Files you delete | Call sites you touch | Does it change what a reader sees |
+| --- | --- | --- | --- |
+| `CodeBlock` | `primitives/CodeBlock.tsx` | 3, each gaining a margin wrapper | **yes: the box. Left rule to full border, `--bg-card` to `--bg-subtle`, 11.5px to 12px, and a named monospace face** |
+| `Lamp` | the `Lamp` half of `Semaphore.tsx` | 2, inside `Semaphore` | yes: the dim lamp gains the caller's colour and stops looking like the hollow one |
+| four `--code-` names | 0 | 0 | no: you already define all four |
+
+## The order that keeps every step provable
+
+1. Bump the pin and the lockfile. Nothing else. Your suite should be green.
+2. `Lamp`, which is contained: `Semaphore` composes the two sentences and passes `colour`. One
+   commit, one file, and the only visible change is the dim lamp.
+3. `CodeBlock`, with the three margin wrappers in the same commit as the import. This is the one to
+   look at on a real page before it is merged, because the shell is the part you did not win.
+
+## If you decline
+
+The amendment stands either way, and it is the part worth having even if both components stay where
+they are: a rule that cannot decide the case it is handed is worse than no rule, because it looks
+like a decision. Declining `CodeBlock` keeps your three blocks consistent with `DiffBlock` and
+`FlaggedSource` and costs nothing but the duplication you already have. Declining `Lamp` costs
+nothing at all; it is ninety lines.
+
+---
+
+# Part two: the twelve of 0.3.0
 
 ## What is being asked, and on whose authority
 
@@ -454,7 +728,7 @@ the shell can move before the two servers agree a word.
 | `LabeledField` | Yours owns the `<input>`, the `useId` and the `aria-describedby`; the sibling's wraps `children` and exports `FIELD`/`READONLY` for the caller to dress its own input. Two different contracts about who owns the control, and converging them is a design decision nobody has made. |
 | `SaveRow` | Both have it, and yours has `destructive`: an arm-then-fire confirm written to close a real footgun. The sibling has no counterpart because its settings are read-only except for one number. Shipping its props alone would make the shared component unusable on the one screen of yours that needs it; shipping yours would be adopting your behaviour. That is the repository owner's call and it has not been made. |
 | `RelativeTime`, `relative` | See under `duration` above. Two products. |
-| `DiffBlock`, `WhatHappened`, `MarkerLinkedText`, `LiveStream`, `Semaphore` | The sibling has nothing at all, so there is no second version for the rule to choose between. Adopting yours wholesale is a decision a shared package is the wrong place to make. |
+| `DiffBlock`, `WhatHappened`, `MarkerLinkedText`, `LiveStream`, `Semaphore` | The sibling has nothing at all, so there is no second version for the rule to choose between. Adopting yours wholesale is a decision a shared package is the wrong place to make. **`Semaphore` still stays, and this is unchanged by 0.4.0**: what red and green mean inside it is your vocabulary. Only `Lamp`, the one part with no vocabulary in it, was taken, and it takes its colour and its label as props. See [Part one](#part-one-the-two-of-040). |
 | `VerdictPill`/`StateBadge`, `EventFeed`, `ChainStrip`, the upload contract, `pipelineOf` | Blocked on the two servers agreeing a vocabulary, not on markup. `infra` is `quiet` in one and `alarm` in the other, and your `StateBadge.tsx:38` says infra "is alarm and NOTHING ELSE MAY BE". Nothing here touches any of them. |
 
 **One live bug spotted while comparing and deliberately not fixed.** Your `ParallelProvers` refuses a
@@ -535,7 +809,7 @@ that they cannot silently stop being.
 
 ---
 
-# Part two: the five components of 0.2.0
+# Part three: the five components of 0.2.0
 
 ## What is being asked, and on whose authority
 
@@ -556,7 +830,7 @@ before this work started, and it is not a judgement that its files are better wr
 version had something the shared one does not, this document says so and says what losing it costs
 you. Two of the five change what your pages do. Three do not change anything at all.
 
-The colours do not travel. `ratchet-ui`'s own `tokens.css` is thirty-three property NAMES with a
+The colours do not travel. `ratchet-ui`'s own `tokens.css` is thirty-seven property NAMES with a
 deliberately drab achromatic ramp chosen for that package and belonging to nobody, and the package
 would rather grow a name than take a value. Your palette stays in your `domain.css`, in your
 repository, under your licence. Ten aliases connect the two, and eight of the ten reproduce a map
@@ -576,7 +850,7 @@ then delete something you built on purpose. Ten did, and they stay where they ar
 | `SaveRow` | The destructive twin that arms before it fires, three-state, `onConfirm`. The other has one intent. |
 | `Disclosure` | Controlled, plus a required stable `id` carried by the thing being disclosed rather than by its position. The other is an uncontrolled `<details>` that snaps shut on a poll. |
 | `TextFold` | A character ceiling as well as a line count, a stable `id`, nothing at all for an empty body, the size in the label. |
-| `CodeBlock` | Lexes Java in one alternation, `matchAll` for re-entrancy, `language` so colouring something the lexer cannot read stops being silent. |
+| ~~`CodeBlock`~~ | **This row was wrong and 0.4.0 reversed it.** It lexes Java in one alternation, uses `matchAll`, and has a `language` prop so that colouring something the lexer cannot read stops being silent. All three are things this version does MORE, recorded in a column headed "what it does that the other cannot" and then used as the reason to decline it. Rule one could not decide the case and handed it to nothing. See [the amendment](#the-amendment-to-rule-one-and-the-case-it-could-not-decide) and [Part one](#part-one-the-two-of-040). |
 | `LabeledField` | Owns the input: `useId` for the label association and `aria-describedby` for the help. The other wraps `children` and cannot know the control's id. |
 | `VerdictPill` | Typed to a three-member `Verdict` against the other's twelve, and deliberately not routed through `Pill` so the marker vocabulary is not re-borrowed. No shared type exists. |
 | `EventFeed` | `order`, copies before sorting, publishes a live-tail cursor, delegates rows to `TraceEvent` with `content-visibility: auto`. Same name, different component. |
@@ -867,7 +1141,7 @@ argued with.
 
 ---
 
-# Part three: the wire vocabulary
+# Part four: the wire vocabulary
 
 `ratchet-ui` was extracted from one of the two tools that share this dashboard shape, and the names
 in `wire.ts` were chosen by looking at both of them rather than by promoting one. That does not
