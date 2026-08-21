@@ -38,6 +38,8 @@ export type {
 
 export type { Style, Tokens, WithTokens } from './style.js'
 
+export { duration, spellMinutes } from './time.js'
+
 export type { Problem } from './check.js'
 
 export {

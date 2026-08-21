@@ -1,16 +1,539 @@
 # Adopting ratchet-ui
 
-This is a request, not an instruction. There are two of them in here and they are independent.
+This is a request, not an instruction. There are three of them in here and they are independent.
 
-**Part one, the components**, is new in 0.2.0 and is why this document was reopened. Five files leave
-your `packages/ui/src` and come back as imports. It is the part with a real cost, and the cost is
-written out below rather than summarised.
+**Part one, the twelve of 0.3.0**, is new and is why this document was reopened. Eleven components
+and one duration formatter leave your `packages/ui/src` and come back as imports. It is the part with
+a real cost, the cost is written out item by item rather than summarised, and one of the twelve
+repaints your settings page.
 
-**Part two, the wire vocabulary**, is unchanged from 0.1.0 and is further down.
+**Part two, the five components of 0.2.0**, is the same ask one release earlier, unchanged. You have
+taken it already; it stays here as the record of what was agreed and why.
+
+**Part three, the wire vocabulary**, is unchanged from 0.1.0 and is furthest down.
 
 ---
 
-# Part one: the five components
+# Part one: the twelve of 0.3.0
+
+## What is being asked, and on whose authority
+
+Twelve things move to `ratchet-ui`. Eleven of them are components or style objects on
+`ratchet-ui/components`; one, `duration`, is on a new `ratchet-ui/time` subpath that reaches no
+React at all.
+
+| Yours today | Becomes |
+| --- | --- |
+| `packages/ui/src/primitives/Loaded.tsx` | `export { Loaded } from 'ratchet-ui/components'` |
+| four private `HEAD` constants in `domain/` | `import { HEADING } from 'ratchet-ui/components'` |
+| private `TABLE`/`HEAD` in `MarkerTable`, `CELL` in `MarkerRow` | `import { CELL, HEAD, ROW, TABLE } from 'ratchet-ui/components'` |
+| `packages/ui/src/domain/clock.ts` | `import { duration } from 'ratchet-ui/time'` |
+| `packages/ui/src/domain/TimeSpent.tsx` | `import { TimeSpent } from 'ratchet-ui/components'` |
+| `packages/ui/src/domain/HumanCost.tsx` | `import { HumanCost } from 'ratchet-ui/components'` |
+| `packages/ui/src/primitives/Account.tsx` | `export { Account } from 'ratchet-ui/components'` |
+| `packages/ui/src/domain/SettingRow.tsx` | `import { SettingCard } from 'ratchet-ui/components'` |
+| `packages/ui/src/primitives/TabRow.tsx` | `import { SectionTabs } from 'ratchet-ui/components'` |
+| `packages/ui/src/domain/KeyStatus.tsx` | `import { KeyStatus } from 'ratchet-ui/components'` |
+| `MarkerTable` plus `MarkerRow`'s `<tr>` | `import { DataTable, type Column } from 'ratchet-ui/components'` |
+| five hand-written write closures | `import { useAsk } from 'ratchet-ui/components'`, and only one of the five |
+
+**The rule that decided every disagreement is the same one 0.2.0 ran on, extended.** Where both
+repositories had the thing, `bump-java-version`'s version is the shared one. Where only one had it
+as a COMPONENT and the other had it written out inline, the shared version takes the inline
+behaviour and your name: the behaviour because that is the standing rule, the name because naming it
+is what your side actually contributed and "took" is a column heading rather than a component name.
+`TimeSpent`, `HumanCost`, `Account`, `KeyStatus` and two of `SettingCard`'s props arrived that way,
+and each file says so in its own header so that a reader who knows one repository is not left
+wondering which half they are looking at.
+
+**None of this is a judgement that the other files are better written.** Several of the losses below
+are yours being given up for a version that does the same thing differently, and where your version
+does something the shared one structurally cannot, it is not in the list at all.
+
+**No colour travels.** Every colour named below is a custom property you already define. One name
+changes, and it is discussed under [the custom properties you define](#the-custom-properties-you-define-2).
+
+**One item repaints your settings page.** That is `Account`, and it is the item to read first and
+argue about before any of the rest, because it is not reversible by a prop.
+
+## `Loaded`, which is already the same file
+
+Your `primitives/Loaded.tsx` and the shared one differ, with comments stripped, in two lines: your
+import of `EmptyNote` and a private `GUTTER` constant against the other's `PAGE_GUTTER`. Same value,
+`'0 24px'`, same order of the two waits, same wording of both sentences.
+
+**Change:** replace the body of `packages/ui/src/primitives/Loaded.tsx` with
+
+```ts
+export { Loaded, type LoadedProps } from 'ratchet-ui/components'
+```
+
+which is the shim you already use in `EmptyNote.tsx`, `Pill.tsx`, `Tally.tsx`, `ProgressBar.tsx` and
+`style.ts`. All four call sites (`chat/page.tsx:306`, `page.tsx:139`, `overwatch/page.tsx:352`,
+`trace/page.tsx:489`) are unchanged by zero characters.
+
+**What changes on screen:** nothing. Both gutters are `'0 24px'`.
+
+**What you lose:** the javadoc. One sentence of it was worth keeping and is now in the shared file's
+comment: this repository had the branch nine times across six files, the sibling nine times across
+five, and one of the eighteen had the two waits the wrong way round.
+
+**What you cannot stop hand-writing, and it is a real limit rather than inertia.** The four branches
+in `apps/web/app/settings/page.tsx` at 369/375, 518/524, 584/590 and 698/704 each return a `<Screen>`
+whose SUBTITLE differs per state, "reading the prompts…" against "could not read the prompts".
+`Loaded`'s `header` is one node for both waits and cannot express that. The prop's doc comment now
+says so, so nobody has to rediscover it by trying.
+
+## `HEADING`, and four of your headings get lighter
+
+You have four private copies of the same five declarations: `domain/FixDiff.tsx:8`,
+`domain/TestArtifact.tsx:10`, `domain/Thinking.tsx:27`, `domain/ToolLog.tsx:24`. They differ only in
+the margin, two at `'12px 0 0'` and two at `0`.
+
+**Change:** in those four files,
+
+```ts
+import { HEADING } from 'ratchet-ui/components'
+
+<h3 style={{ ...HEADING, margin: '12px 0 0' }}>   // or margin: 0
+```
+
+**What you are NOT being asked to take:** `Section` itself. You have no equivalent. Your sections are
+bare `<section>` elements with their own box styles, and `Section`'s fixed `margin: '0 0 22px'` plus
+its gutter policy fits none of them.
+
+**What you lose, and it is the point of the item:** all four of your copies omit `fontWeight`. That
+is not a declaration that drifted, it is one nobody made: an `h3` with no weight takes the browser's
+bold, so your four render at 700 beside the sibling's four at 500. The shared constant names the
+weight. **Those four headings will get visibly lighter.** If you would rather they did not, the
+override is one declaration at each call site, and then the two dashboards have two headings again.
+
+## The four table declarations
+
+Your `MarkerTable.tsx:23` `HEAD` and the sibling's are byte-identical: eight declarations, same
+order, down to `.06em` and the strong rule. Neither copied the other.
+
+**Change:** delete the private `TABLE` and `HEAD` from `MarkerTable.tsx` and the private `CELL` from
+`MarkerRow.tsx`, and import `CELL`, `HEAD`, `ROW` and `TABLE`. Move the hairline off the cell and on
+to the `<tr>`, which is what `ROW` is.
+
+**What you lose, exactly:**
+
+- **The body goes from 13px to 12.5px.** The shared `TABLE` carries a size and yours inherited the
+  document's.
+- **The rule under the LAST row disappears.** Yours is a `borderBottom` on every cell, which is the
+  same rule between rows and a different one at both ends of the table; the shared one is a
+  `borderTop` on the row, which draws nothing below the final one. If you want the table closed
+  against what follows, that is one declaration on your own `tbody`, in your repository.
+
+**Why the row and not the cell,** since this is the only declaration the two disagreed about: a rule
+on the row spans the full width by construction, and a rule on the cells is a run of separate
+segments that only look continuous while every cell in the row is the same height. Your rows have
+two-line cells beside one-line cells.
+
+**What is NOT moving:** the monospace stack and the nested-table scale. Only the sibling has ever had
+a table inside a table, and you have no monospace constant at all. A shared package that carries a
+constant one consumer invented and the other cannot use has started collecting things.
+
+## `duration`, replacing `clock`
+
+`ratchet-ui/time` has no React reachable from it, so importing it costs you nothing at run time
+beyond the function.
+
+```ts
+import { duration, spellMinutes } from 'ratchet-ui/time'
+```
+
+**Change:** delete `packages/ui/src/domain/clock.ts` and point its five callers at `duration`:
+`marker/page.tsx:497`, `RunProgress.tsx:87`, `:98`, `:111`, and `TimeSpent.tsx:33` (which disappears
+anyway, below).
+
+**What changes on screen, exactly, and it is four cases:**
+
+| input | `clock` said | `duration` says |
+| --- | --- | --- |
+| 59.6 seconds | `59s` | `1m` |
+| exactly ten minutes | `10m 0s` | `10m` |
+| exactly two hours | `2h 0m` | `2h` |
+| a backwards clock | `-1s` | `0s` |
+
+**Why rounding rather than your truncation,** beyond the standing rule: truncation reports 59.6
+seconds as "59s" while every clock beside it has already turned over. Your file's own comment says
+the shape is the Java's and that `Math.trunc` follows Java integer division, which is an argument
+about where the code came from rather than about what a reader needs.
+
+**Why the name is `duration`:** a function called `clock()` that returns a duration is a misnomer,
+and your own file header calls it "how long the machine took".
+
+**`spellMinutes` against your `hm`:** they differ only at an exact hour, `2h` against `2h 0m`. Your
+`HumanCost` comment argues that "0h 45m" loses to "45m" because a leading zero is a unit that is not
+there. `spellMinutes` is that same argument applied to the tail of the number rather than the head.
+
+**What is NOT moving, and please do not try:** `relative` and `RelativeTime`. Yours crosses into
+minutes at 90 seconds and floors, has a day rung, owns a timer that decelerates as the number does,
+and has two variants where 0 means "nothing yet" in one and an epoch in the other. The sibling's
+crosses at 60 and rounds and is a pure function. Those are two products, not one written twice. The
+reasoning is written into `time.ts`'s header so that nobody spends an afternoon on it later.
+
+## `TimeSpent`
+
+**Change:** delete `packages/ui/src/domain/TimeSpent.tsx`; at `MarkerRow.tsx:128`,
+
+```tsx
+<TimeSpent ms={marker.spanMs > 0 ? marker.spanMs : null} events={marker.events} />
+```
+
+The `null` is how the caller says "not started". It is a prop rather than a comparison inside the
+component because the two dashboards express that fact differently, one by a start stamp and one by
+a positive span, and only the caller knows which of its own fields means it. Written as above, your
+dash rule is preserved exactly.
+
+**What you lose, exactly:**
+
+- The duration line stops being tertiary 11px and becomes the page's own ink at the table's size.
+  Only the event count stays set down. The reason is that the span is the measurement a reader came
+  for and the count is the footnote to it; one colour for both makes the cell one fact.
+- The event count gains thousand separators, `18,340` rather than `18340`.
+- The count disappears when there is no span. A count beside a dash invites the reading that the job
+  ran and produced nothing.
+- `clock` becomes `duration`, with the four differences in the table above.
+
+## `HumanCost`
+
+**Change:** delete `packages/ui/src/domain/HumanCost.tsx`; at `MarkerRow.tsx:131`,
+`StateCounts.tsx:58` and `marker/page.tsx:500`, pass `minutes={x > 0 ? x : null}` to keep your dash
+rule exactly as it is.
+
+**What you lose:**
+
+- `hm` becomes `spellMinutes`, so an exact hour reads `2h` rather than `2h 0m`.
+- The dash stops being 11px. It is tertiary, at the surrounding size.
+
+**One difference worth arguing with rather than accepting quietly.** The shared component dashes on
+`null` and PRINTS a zero, where yours dashes on anything not positive. Your own comment says the
+field cannot tell "never priced" from "priced at nothing", because `num()` turns an estimator who
+answered in prose into a 0. That is an argument for showing the zero: a dash says nobody asked, and a
+nought says somebody answered and something ate the answer, and only one of those two sends anyone to
+look. If you pass `x > 0 ? x : null` you keep your behaviour and never see the difference; if you
+pass the number straight through, you get the parse failures surfaced.
+
+## `Account`, and this is the item to argue about
+
+**Change:** replace `packages/ui/src/primitives/Account.tsx` with
+
+```ts
+export { ACCOUNT, ACCOUNT_QUIET, Account, type AccountProps } from 'ratchet-ui/components'
+```
+
+Zero call sites change. The name, the shape and the `quiet` prop are yours and the shared component
+would not exist without them.
+
+**What you lose, exactly, at seventeen call sites across twelve files** (`settings/page.tsx`,
+`chat/page.tsx`, `AskBox`, `ClaimCard` twice, `ForgetKeyChoice`, `JdkChoice`, `KeyStatus` twice,
+`MarkerPaste`, `MarkerQueue`, `ParallelProvers`, `SourceZip`, `UploadForm`):
+
+| | yours | shared |
+| --- | --- | --- |
+| plain size | `.95rem` (15.2px) | `13px` |
+| plain leading | 1.7 | 1.6 |
+| plain colour | `var(--text-secondary)` | inherited, so primary |
+| measure | `52em` | `72ch` |
+| quiet size | `.74rem` (11.84px) | `11.5px` |
+| quiet margin | `.5rem 0 .2rem` | `8px 0 0` |
+| quiet colour | `var(--text-tertiary)` | unchanged |
+
+**This repaints your whole settings page.** It is the correct answer under the standing rule and it
+is applied here, but it is large enough that it should be argued before the tag rather than
+discovered after. If the answer is that your metrics should win, that is a decision for the
+repository owner and it is one line in the shared file.
+
+**The quiet variant is not invented and is not only yours.** It is byte for byte the footnote style
+`SettingCard` already carried privately: 11.5px, 1.6, tertiary, 72ch, margin `8px 0 0`. Both sides
+had it, which is why it travels.
+
+## `useAsk`, and only one of your five closures should take it
+
+You have five write closures: `settings/page.tsx` at 357, 505, 568 and 677, and `chat/page.tsx:275`.
+
+**Take it at `chat/page.tsx:275` and nowhere else.** That one has a real landed-or-refused answer and
+would gain `NO_REASON` and the `REQUEST_FAILED` prefix, which is exactly the distinction its own
+comment is reaching for: "this one is not the record refusing the question, it is the question never
+having reached the record".
+
+**Do not take it in the four settings closures.** Each is a post-then-re-read: it `await reload()`s
+inside the closure. `useAsk`'s `onAnswer` is not awaited, so `busy` clears before the re-read lands
+and a control would report done while the document under it is still the old one. You do not track
+`busy` in those four today at all, so this is not a regression you would be accepting, it is a wrong
+one you would be adding. An awaited `onAnswer` was deliberately not grown for this release, because
+that would be importing this repository's behaviour into a shared component rather than the other way
+round. If you want it, ask, and it is a 0.4.0 prop.
+
+**What you gain if you take it at chat:** four states rather than two (idle, busy, landed, refused),
+an ask counter that never counts back down, and a thrown request that reads differently from a
+refusal. A refusal with no reason says "the server declined without saying why" rather than nothing.
+
+**What changes in wording:** a thrown request currently sets `trouble` to the bare message; `useAsk`
+prefixes it with `the request itself failed: `.
+
+## `SettingCard`, replacing `SettingRow`
+
+The pairing is exact: `title` against `name`, `provenance` against `state`, both drawn as a small
+uppercase letterspaced tertiary word beside the heading.
+
+**Change:** delete `packages/ui/src/domain/SettingRow.tsx` or leave it as a two-line adapter, and at
+its eight call sites (`settings/page.tsx:616`, `MarkerQueue.tsx:34`, `SourceZip.tsx:51`,
+`MirrorRules.tsx:57`, `AgentPromptEditor.tsx:67`, `GitCredential.tsx:36`, `JdkChoice.tsx:45`,
+`ParallelProvers.tsx:58`) rename three props:
+
+| yours | shared |
+| --- | --- |
+| `name` | `title` |
+| `state` | `provenance` |
+| `anchorId` | `id` |
+
+`changed` keeps its name and its meaning. It is your prop: the sibling's settings page only reads and
+has no opinion about what an edited card looks like, so nothing about it was overwritten. Your
+reasoning for a boolean rather than a `kind` is in the shared prop's doc, including why the accent is
+`--accent-primary` rather than a state colour.
+
+**The custom property to rename:** `--bg-soft-accent` becomes `--accent-soft` in your own
+`tokens.css`. Read [the note below](#the-custom-properties-you-define-2) before doing it, because the
+two are not the same value in dark.
+
+**What you lose, exactly:**
+
+- The `2px solid var(--border-strong)` left rule on an UNCHANGED row. The shared card has a plain
+  1px border on all four sides until something is changed, and then it has the accent rule. Two
+  states rather than three.
+- The `margin: '10px 0'` row rhythm. The card carries no outer margin; its callers space it, in the
+  sibling's case with an explicit 18px spacer.
+- Padding goes from `12px 14px` to `14px 16px`.
+- The provenance word goes from 10.5px to 10px.
+- Your `<header>` flex row with its `10px` gap and `flexWrap` becomes an `<h3>` with an `8px` left
+  margin on the word. On one line the two look the same; at a narrow width yours wrapped and this
+  does not.
+
+**What you gain:** the footnote. `SettingCard` takes one and renders it under the card as a quiet
+`Account`, which is where several of your rows currently put a bare `<Account quiet>` by hand.
+
+## `SectionTabs`, replacing the `TabRow` primitive
+
+This is the bar at the top of a page. It is NOT the sibling's `TabRow`, which is a different
+component with the same name: an underline row that sits INSIDE a page. Two roles, and only the
+page-top bar has a pair, which is why the shared one is called `SectionTabs`. Yours is being renamed
+too, so nobody has to remember which repository's `TabRow` they are reading.
+
+The overlap between two files that never met is startling: `padding: '5px 11px'`,
+`borderRadius: '6px'`, `var(--state-selected-bg)` under the current tab, the bar's `'10px 24px'` and
+its soft bottom rule are identical declarations, and both wrote the trailing departure with
+`marginLeft: 'auto'` and the same argument in words.
+
+**Change:** three call sites, `settings/page.tsx:333`, `overwatch/page.tsx:390` and `:438`.
+
+| yours | shared |
+| --- | --- |
+| `items` | `tabs` |
+| `on` | `current` |
+| `trailing` | `trailing`, unchanged |
+| nothing | `label`, required |
+
+**What you gain:** `aria-label` on the nav, which yours does not have today and which a page with
+more than one nav in it needs; and `aria-current` on the lit tab, which neither original had on this
+row.
+
+**What you lose, exactly:**
+
+- `flexWrap`. The shared bar does not wrap, so at a narrow width it scrolls rather than stacking.
+- The gap goes from 2px to 4px and the label from 12px to 12.5px.
+- The bar gains `background: var(--bg-panel)`, and the current tab gains `fontWeight: 600`.
+- **A departure is now lit by its own `current` like any other tab.** Yours never lights one, on the
+  stated grounds that lighting it would claim the reader is already there. That is right for a link
+  that leaves the page and wrong for a section of this one wearing a divider, which is what the
+  sibling's supervisor tab is. **Pass `current: false` on your departures and you keep your
+  behaviour exactly.** Nothing is forced here.
+
+## `KeyStatus`
+
+Yours and the sibling's inline version already agreed on everything that matters: the labels "key
+set" and "no key", the good and alarm tones, and the sentence `the agents are using the key from
+${keySource}`.
+
+**Change:** delete `packages/ui/src/domain/KeyStatus.tsx`; at `settings/page.tsx:621`,
+
+```tsx
+<KeyStatus
+  keyed={data.keySet}
+  keySource={keySource}
+  whenAbsent="nothing is set here and nothing is set in the environment, so every agent call is refused before it is made"
+/>
+```
+
+`whenAbsent` exists because the two pages disagree and both are right: yours can set a key, the
+sibling's deliberately renders no key field at all on the grounds that a portal several developers
+reach should not put a credential on screen. Neither absent-case sentence is true of the other page,
+so it belongs to the caller.
+
+**What you lose:**
+
+- The source sentence stops being an `<Account quiet>` and becomes a 12.5px `var(--text-secondary)`
+  span beside the pill. It is the answer to the question the pill raises, and an aside two sizes down
+  is where a thing goes when nobody has asked.
+- The flex row and its wrap, for the same reason as the card above.
+- `KeySource` as a union type. The shared prop is a plain string, because the set of places a key can
+  come from is a fact about a deployment rather than about this component.
+
+## `DataTable`, the largest item and the only one where each side keeps its own half
+
+The two repositories factored their index table on OPPOSITE axes. The sibling factored the SHELL:
+one set of table, heading, row and cell styles shared across three tables, with the cells written out
+inline. You factored the CELLS: six components each owning its own dash rule and tooltip, over a
+shell copied privately into two files and shared with nothing.
+
+**Converged, the shell is the sibling's and the cells stay yours.** `ratchet-ui` ships NO cells. Your
+cell factoring is adopted as a SHAPE rather than as code, and the per-column render prop is the joint
+that makes it expressible:
+
+```tsx
+import { DataTable, type Column } from 'ratchet-ui/components'
+
+const COLUMNS: Column<MarkerRowData>[] = [
+  { head: 'severity', cell: (m) => <SeverityBadge severity={m.severity} /> },
+  { head: 'marker', cell: (m) => <MarkerIdentity … /> },
+  { head: 'state', cell: (m) => <><StateBadge … /><Semaphore … /></> },
+  { head: 'interpretation', cellStyle: { maxWidth: '44em' }, cell: (m) => <WhatHappened … /> },
+  { head: 'took', align: 'right', cell: (m) => <TimeSpent … /> },
+  { head: 'a person would have', align: 'right', cell: (m) => <HumanCost … /> },
+]
+
+<DataTable
+  rows={markers}
+  columns={COLUMNS}
+  rowKey={(m) => m.key}
+  rowClassName="hover:bg-[var(--state-hover-bg)]"
+/>
+```
+
+**Change:** `MarkerTable.tsx` loses its private `TABLE`, `HEAD` and `COLUMNS: string[]` and becomes
+that array. `MarkerRow.tsx` stops being a component and survives as the six `cell` functions;
+`MarkerRowData` stays exactly where it is and does not change.
+
+**Your hover band stays in YOUR source, deliberately.** `rowClassName` is a prop rather than
+something the package ships, and that is the whole point: a Tailwind utility only exists if the
+consumer's own generator saw the literal string somewhere it was scanning. A class shipped from
+inside `node_modules` is a rule that may simply never be emitted, with no error and no failing test.
+Passing it from `MarkerTable.tsx` means your own `@source "../../../packages/ui/src"` glob covers it,
+exactly as it does today.
+
+**What you gain:** `fontSize: 12.5px` on the table, an `overflowX: 'auto'` wrapper, an `empty` state
+you do not have, and the type parameter, which is what keeps each `cell` type-checked against
+`MarkerRowData` rather than against `any`. `scope="col"` survives, because the shared shell emits it.
+
+**What you lose, exactly:**
+
+- **The hairline under your last row**, for the reason given under the table declarations above.
+- **`took` and `a person would have` become right-aligned.** They are left-aligned in your table
+  today and right-aligned in the sibling's, and the shell's `align` is one prop per column either
+  way. This is the visible change a reader of your busiest page would notice first, so it is said
+  out loud here rather than left to be discovered.
+- The 13px body, as above.
+
+**There is deliberately no `sort` prop.** Your written decision not to sort the queue, because its
+order is the run's plan, is the reason: order belongs to whoever owns the rows.
+
+**One ordering fact worth having:** this item does not wait on the state vocabulary. `StateBadge` and
+the sibling's `VerdictPill` are each one `cell` function in their own repository's column array, so
+the shell can move before the two servers agree a word.
+
+## The eight that are NOT being asked for, and why
+
+| Yours | Why it stays |
+| --- | --- |
+| `MarkerAccount` over `Prose` | Not one component written twice. The sibling renders the model's paragraph in a div with `whiteSpace: 'pre-wrap'`, preserving the writer's line breaks; `Prose.tsx:93` deliberately JOINS the lines within a paragraph, on the stated grounds that a single newline is a wrap the writer did not mean. Opposite decisions about the only thing the input carries. |
+| `Corner` in `PageHeader` | `FindingsButton` counts holds plus unjudged, which is this pipeline's supervisor vocabulary, and your own comment says nothing shared has any business knowing it. The half that did converge, the `CORNER` style object, shipped in 0.2.0. Nothing is left. |
+| `ParallelProvers` | The sentence "The server clamps what you save, so what appears here afterwards is what it kept, not what you typed" is word for word identical in both repositories, and the footnotes are near-identical. But the component interpolates its own bounds into its own noun, owns the clamp policy and owns a refusal message. The overlap is PROSE, not markup. What actually moves is the scaffolding both spellings are built from, which is `SettingCard`. |
+| `LabeledField` | Yours owns the `<input>`, the `useId` and the `aria-describedby`; the sibling's wraps `children` and exports `FIELD`/`READONLY` for the caller to dress its own input. Two different contracts about who owns the control, and converging them is a design decision nobody has made. |
+| `SaveRow` | Both have it, and yours has `destructive`: an arm-then-fire confirm written to close a real footgun. The sibling has no counterpart because its settings are read-only except for one number. Shipping its props alone would make the shared component unusable on the one screen of yours that needs it; shipping yours would be adopting your behaviour. That is the repository owner's call and it has not been made. |
+| `RelativeTime`, `relative` | See under `duration` above. Two products. |
+| `DiffBlock`, `WhatHappened`, `MarkerLinkedText`, `LiveStream`, `Semaphore` | The sibling has nothing at all, so there is no second version for the rule to choose between. Adopting yours wholesale is a decision a shared package is the wrong place to make. |
+| `VerdictPill`/`StateBadge`, `EventFeed`, `ChainStrip`, the upload contract, `pipelineOf` | Blocked on the two servers agreeing a vocabulary, not on markup. `infra` is `quiet` in one and `alarm` in the other, and your `StateBadge.tsx:38` says infra "is alarm and NOTHING ELSE MAY BE". Nothing here touches any of them. |
+
+**One live bug spotted while comparing and deliberately not fixed.** Your `ParallelProvers` refuses a
+non-integer client-side, "that is not a whole number, so nothing was sent". The sibling's `RunSection`
+sends `Number(typed)` unguarded, so an empty lanes box posts `lanes: 0`. That is a bug in the OTHER
+repository which your component would have fixed, and taking the fix would be importing your
+behaviour. It is recorded here rather than acted on.
+
+## The custom properties you define
+
+**One rename, and it is not a pure rename in dark.** `SettingCard`'s changed wash uses
+`--accent-soft`, which you already define. Your `SettingRow` used `--bg-soft-accent`. In light both
+are `#FFE7E8` and nothing changes. In dark, `--bg-soft-accent` is `#3B1C1E` and `--accent-soft` is
+`#4A1F21`, so **an edited setting row gets a slightly lighter wash in dark**. If you want the old
+value, set `--accent-soft` in your own stylesheet to whatever you want it to be; it is your token and
+your value. What `ratchet-ui` will not do is grow a `--bg-soft-accent` alias, because that is your
+name attached to your value, and the contract is a list of names that belong to nobody.
+
+Everything else in this part uses names already in the contract and already in your `tokens.css`:
+`--border-soft`, `--border-strong`, `--bg-card`, `--bg-panel`, `--text-primary`, `--text-secondary`,
+`--text-tertiary`, `--state-selected-bg`, `--state-selected-text`, `--accent-primary`,
+`--state-hover-bg`. No new name is needed and no value travels.
+
+## Installing it
+
+One line, in `packages/ui/package.json`, plus the lockfile in the same commit:
+
+```json
+"dependencies": {
+  "@fsm/types": "workspace:*",
+  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.3.0"
+}
+```
+
+**The Tailwind line you already have is still the only one needed.** `@source
+"../../../packages/ui/node_modules/ratchet-ui/dist"` is in your `globals.css` at line 20 and covers
+everything here. The package still ships exactly one utility class, `animate-pulse` in `Pill`, and
+0.3.0 adds none: `DataTable`'s `className` is a variable, not a literal, so nothing new appears in
+`dist` for a scanner to find or to miss. The grep you have on the built stylesheet needs no second
+name.
+
+## The whole bill, in one place
+
+| Item | Files you delete | Call sites you touch | Does it change what a reader sees |
+| --- | --- | --- | --- |
+| `Loaded` | 0 (becomes a shim) | 0 | no |
+| `HEADING` | 0 | 4 | yes: four headings 700 to 500 |
+| table declarations | 0 | 2 | yes: 13px to 12.5px, no rule under the last row |
+| `duration` | `clock.ts` | 5 | yes: four cases, tabulated above |
+| `TimeSpent` | `TimeSpent.tsx` | 1 | yes: colour, size, grouping, count on a dash |
+| `HumanCost` | `HumanCost.tsx` | 3 | yes: exact hours, dash size |
+| `Account` | 0 (becomes a shim) | 0 | **yes, everywhere: the whole settings page** |
+| `useAsk` | 0 | 1 of 5 | yes at chat: a busy state and two new sentences |
+| `SettingCard` | `SettingRow.tsx` | 8 | yes: padding, left rule, rhythm |
+| `SectionTabs` | `TabRow.tsx` | 3 | yes: gap, size, panel background, wrap |
+| `KeyStatus` | `KeyStatus.tsx` | 1 | yes: the source sentence is bigger |
+| `DataTable` | `MarkerTable`/`MarkerRow` internals | 1 table | yes: two columns right-align |
+
+## The order that keeps every step provable
+
+1. Bump the pin and the lockfile. Nothing else. Your suite should be green: no import has changed.
+2. `Loaded` and `Account` as shims. Two lines, no call sites. This is where you find out whether the
+   `Account` metrics are acceptable, and it is one commit to revert if they are not.
+3. `duration`, then `TimeSpent` and `HumanCost`, in that order. The last two read the first.
+4. `HEADING` and the table declarations, which touch six files and no logic.
+5. `SettingCard`, `SectionTabs`, `KeyStatus`. The settings cluster, one commit each.
+6. `DataTable` last. It is the only item that restructures a file rather than replacing one.
+7. `useAsk` at `chat/page.tsx:275`, or not at all.
+
+## If you decline
+
+Every item above is independent, and declining one costs you nothing but the duplication you already
+have. The two that would be most missed if declined are the table declarations and `HEADING`, because
+those are the two where the copies are already byte-identical and the only thing sharing them buys is
+that they cannot silently stop being.
+
+---
+
+# Part two: the five components of 0.2.0
 
 ## What is being asked, and on whose authority
 
@@ -342,7 +865,7 @@ argued with.
 
 ---
 
-# Part two: the wire vocabulary
+# Part three: the wire vocabulary
 
 `ratchet-ui` was extracted from one of the two tools that share this dashboard shape, and the names
 in `wire.ts` were chosen by looking at both of them rather than by promoting one. That does not

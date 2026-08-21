@@ -8,7 +8,7 @@ Apache 2.0. No dependencies. React is a peer, and only the `./components` entry 
 
 ```sh
 # not on npm yet; depend on a release tag
-pnpm add github:vasiliy-mikhailov/ratchet-ui#v0.2.0
+pnpm add github:vasiliy-mikhailov/ratchet-ui#v0.3.0
 ```
 
 ## Why this exists
@@ -31,7 +31,8 @@ speaks it. That is what is in here, and nothing else is.
 | `src/check.ts` | Hand-written validators returning a list of problems, never throwing. |
 | `src/tokens.css` | The custom-property names a component may reference, with placeholder values. |
 | `src/style.ts` | Adding CSS custom properties to a style object without depending on React. |
-| `src/components/` | Five React components whose two versions differed by palette, not behaviour. |
+| `src/time.ts` | How long something took, spelled one way: `8m 45s`, `2h`. No React. |
+| `src/components/` | Fourteen React components, one table shell, four table style objects, one hook. |
 | `tsconfig.base.json` | The compiler settings both consuming repositories already had, byte for byte. |
 
 ## The types are only half of a contract
@@ -127,16 +128,33 @@ mounted inside a shell has to follow the shell's choice and the shell needs some
 
 ## The components
 
-`ratchet-ui/components` ships five: `EmptyNote`, `PageHeader`, `Pill`, `ProgressBar` and `Tally`,
-plus the `STRIP` and `CORNER` style objects they sit in and the `Style` type they are written
-against. React is a peer at `>=19`, declared for this entry alone. Nothing under `.`, `./wire`,
-`./check` or `./style` imports React, so a consumer that only wants the contract still pays nothing.
+`ratchet-ui/components` ships fourteen: `Account`, `DataTable`, `EmptyNote`, `HumanCost`,
+`KeyStatus`, `Loaded`, `PageHeader`, `Pill`, `ProgressBar`, `Section`, `SectionTabs`, `SettingCard`,
+`Tally` and `TimeSpent`, plus the style objects they sit in, the four declarations a table is made
+of, the `useAsk` hook and the `Style` type they are written against. React is a peer at `>=19`,
+declared for this entry alone. Nothing under `.`, `./wire`, `./check`, `./style` or `./time`
+imports React, so a consumer that only wants the contract still pays nothing.
 
-They are here because both dashboards had written all five and, with comments stripped, the two
-versions differed by the palette rather than by the behaviour. That is the whole admission rule, and
-it is checked rather than asserted: `tokens.test.ts` fails the build on a component that reaches for
-a custom property the contract does not list, which is exactly what happened the first time a pill
-arrived carrying `var(--state-pass)`.
+Two rules admit a component here and both are narrow.
+
+The first is 0.2.0's: both dashboards had written it, and with the comments stripped the two
+versions differed by the palette rather than by the behaviour.
+
+The second is 0.3.0's, and it covers the pairs the first cannot see. Where one dashboard had a
+COMPONENT and the other had the same thing written out inline, the behaviour taken is the inline
+one's and the name taken is the component's. The behaviour, because which repository wins a
+disagreement was settled before any of this started. The name, because naming it is what the side
+that extracted it actually contributed, and a column heading is not a component name. Five arrived
+that way and each says so in its own header, since a file like that reads as an import to one
+repository and as a rewrite to the other.
+
+Neither rule admits a component only one side has ever had. There is no second version for the rule
+to choose between, and adopting one wholesale is a decision a shared package is the wrong place to
+make.
+
+The rule is checked rather than asserted: `tokens.test.ts` fails the build on a component that
+reaches for a custom property the contract does not list, which is exactly what happened the first
+time a pill arrived carrying `var(--state-pass)`.
 
 So a tone is a name, and a colour is the consumer's:
 
@@ -195,6 +213,12 @@ help. Eleven such pairs were examined and ten stayed where they were, because mo
 capability its author built on purpose, and no amount of parameterisation puts it back without
 turning the shared file into both versions bolted together.
 
+0.3.0 refused four more on that rule and two on a new one. A paragraph of prose that one side
+renders with the writer's line breaks intact, and the other parses as a markdown subset that
+deliberately joins those lines, is not one component written twice: the two make opposite decisions
+about the only thing the input carries. And a page-corner nav whose two versions share one style
+object and no behaviour has nothing left to move, because the style object shipped in 0.2.0.
+
 **No schema library.** The validators are hand-written because a schema dependency here is a version
 negotiation with everybody who adopts this. More code in this repository, none in yours.
 
@@ -214,7 +238,7 @@ Over a git reference, until there is a reason to be on npm:
 
 ```json
 "dependencies": {
-  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.2.0"
+  "ratchet-ui": "github:vasiliy-mikhailov/ratchet-ui#v0.3.0"
 }
 ```
 
