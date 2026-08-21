@@ -466,9 +466,11 @@ behaviour. It is recorded here rather than acted on.
 ## The custom properties you define
 
 **One rename, and it is not a pure rename in dark.** `SettingCard`'s changed wash uses
-`--accent-soft`, which you already define. Your `SettingRow` used `--bg-soft-accent`. In light both
-are `#FFE7E8` and nothing changes. In dark, `--bg-soft-accent` is `#3B1C1E` and `--accent-soft` is
-`#4A1F21`, so **an edited setting row gets a slightly lighter wash in dark**. If you want the old
+`--accent-soft`, which you already define. Your `SettingRow` used `--bg-soft-accent`. In your
+stylesheet those two tokens hold the same value in light, so nothing changes there, and different
+values in dark, where `--accent-soft` is the lighter of the two. So **an edited setting row gets a
+slightly lighter wash in dark**. The values are yours and are deliberately not repeated here, since
+this package carries no palette. If you want the old
 value, set `--accent-soft` in your own stylesheet to whatever you want it to be; it is your token and
 your value. What `ratchet-ui` will not do is grow a `--bg-soft-accent` alias, because that is your
 name attached to your value, and the contract is a list of names that belong to nobody.
